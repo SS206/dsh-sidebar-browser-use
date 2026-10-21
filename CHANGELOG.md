@@ -10,6 +10,7 @@
 - 内部工具：tabs / snapshot / text / screenshot / navigate / click / fill / press / history / open，以及默认关闭的 eval。
 - stdio MCP server（@modelcontextprotocol/server 2.3.1）。
 - host 半：loopback HTTP bridge（随机 token）、Connection Fetch 路由 `/api/browser-use`、`tools/pre-execute` 审批钩子。
+- 审批实现：唯一执行入口 `browser_use_call` 上挂 `tools/pre-execute` 钩子；参数读 `exec.arguments`，会话模式取 `sandboxPolicy.resolve(...).mode`；读工具放行，写工具在 read-only/workspace-write 下返回 `{ kind: 'ask', reason, displayReason }` 弹 DSH 原生审批，danger-full-access 放行；拒绝时调用失败且不执行；`browser_eval` 由 dispatch 的 `allowEvaluate` 门控。
 - renderer 半：轮询取命令、可见 webview 定位、a11y 风格快照与 ref、导航/点击/填写/按键/历史/截图。
 - 安装/回滚脚本、探针测试与协议测试（18 项）。
 
@@ -23,8 +24,16 @@
 - host 插件无法加载：`ctx.connection.rpc.handle()` 在当前宿主组合下 due to `webServer` inject 检查抛出 → 改用 Connection Fetch 路由。
 - 审批钩子不触发：`ctx.effect(() => ctx.on(...))` 包裹无效 → 直接 `ctx.on(...)`。
 - 审批读取参数错误：使用 `exec.args` 导致 tool 为 undefined → 改读 `exec.arguments`。
+- `browser_history`：goBack/goForward/reload 后等待导航稳定（URL 变化或 did-stop-loading，400ms 宽限），避免返回旧 URL；页面未变化时显式提示。
+
+### Verified
+
+- 2026-10-21 真机验证：浏览器功能全链路（list / tabs / snapshot / text / screenshot / navigate / click / fill+submit / press / history / open）。
+- 2026-10-21 真机验证：审批矩阵三模式——read-only / workspace-write 写操作弹审批（拒绝不执行、批准执行），danger-full-access 直接放行，读工具始终不审批；`browser_eval` 默认关闭返回 `EVAL_DISABLED`。
+- 2026-10-21 真机验证：`browser_history` 等待修复生效（back 返回新 URL，栈底正确报错）。
 
 ### Known issues
 
-- 审批 UI 矩阵（read-only / workspace-write / danger-full-access）在本次提交时等待重启后的真机验证。
+- 侧栏 webview 中页面内导航（链接点击、表单提交）不产生历史条目，`browser_history` 只能回到最近一次 `browser_navigate` 的页面。
 - host 半仍保留 debug.log 诊断代码，发布前移除。
+- `browser_eval` 在 `allowEvaluate=false` 时审批门放行、由 dispatch 拦截；bridge 路由本身无 eval 门控（本机持有 token 方可越过，属 defense-in-depth 缺口）。

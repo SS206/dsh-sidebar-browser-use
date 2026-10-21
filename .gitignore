@@ -4,3 +4,25 @@ node_modules/
 *.tgz
 .temp/
 *.bak
+
+# Secrets and local runtime files that must never enter the repository.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+bridge.json
+
+# Build and tooling output.
+coverage/
+dist/
+.codegraph/
+
+# Windows metadata.
+Thumbs.db
+desktop.ini
+
+# DSH pwsh sandbox artifact: Windows font cache written under a literal
+# %SystemDrive% relative path when the sandboxed shell has no SystemDrive.
+%SystemDrive%/

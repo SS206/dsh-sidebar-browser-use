@@ -4,7 +4,7 @@ DeepSeek Harness 的 browser-use MCP：模型通过两个稳定工具驱动右�
 
 ## 当前状态
 
-开发中（0.1.0，未发布）。功能链路已端到端验证：list、tabs、snapshot、text、screenshot、navigate、click、fill+submit、history、open 均可用。审批 UI 矩阵（read-only / workspace-write / danger-full-access）的回归验证仍在进行中；宿主侧诊断日志（`$DSH_HOME/browser-use-mcp/debug.log`）保留到发布前。
+开发中（0.1.0，未发布）。浏览器功能与审批矩阵已于 2026-10-21 真机验证通过：list、tabs、snapshot、text、screenshot、navigate、click、fill+submit、press、history、open 均可用，错误码稳定；读工具不弹审批，写工具在 read-only/workspace-write 下弹审批（拒绝不执行、批准执行），danger-full-access 直接放行。宿主侧诊断日志（`$DSH_HOME/browser-use-mcp/debug.log`）保留到发布前。
 
 ## 为什么只有两个工具
 
@@ -59,10 +59,17 @@ pwsh -File scripts/install-dev.ps1
 
 ## 审批
 
-- 读工具不审批。
-- 写工具在非 `danger-full-access` 会话中询问用户。
-- `danger-full-access` 下不弹审批；工具描述提醒模型自行确认目标与意图。
-- 拒绝或取消审批时，调用失败且不执行。
+审批完全委托给 DSH，且只有一个入口：`browser_use_call`。`browser_use_list` 是纯读目录，永不审批。
+
+host 半注册 `tools/pre-execute` 钩子：对 `browser_use_call` 读取 `exec.arguments`、解析会话 sandbox mode，写工具返回 `{ kind: 'ask', reason, displayReason }`，读工具直接放行。`danger-full-access` 会话不弹卡；`read-only` 与 `workspace-write` 会话对每个写工具都弹卡。拒绝或取消会让调用在到达 MCP server 之前失败，浏览器侧不会执行任何动作。该门是 fail-closed 的：拿不到模式或审批通道不可用时按 ask 处理（由 dsh-tools 保证）。
+
+决策本身是一个纯函数（`lib/approval.js`）：先 trim 工具名（带空白无法绕过写工具集合）；未知/读工具放行；`allowEvaluate` 关闭时 `browser_eval` 放行；`danger-full-access` 放行；其余情况返回 `ask`。审批卡包含工具名、目标摘要（URL、ref、方向、按键或脚本前 80 字符）和可选的调用方理由，中英文双语。
+
+`browser_eval` 是独立的能力门控：`allowEvaluate=false` 时目录中不出现、直接返回 `EVAL_DISABLED`（禁用的能力不弹审批卡）；开启后它仍是写工具，非 danger-full-access 会话同样要审批。
+
+嵌套调用同样适用：从 `run_code`/PTC 绑定调用的 `browser_use_call` 仍经过 `tools/pre-execute` 并正常弹审批。
+
+2026-10-21 已在三种模式下验证：read-only 与 workspace-write 对写工具弹审批（拒绝不执行、批准执行）；danger-full-access 不弹；读工具始终不弹。实现细节见 [AGENTS.md](AGENTS.md)。
 
 ## 安全
 
@@ -76,7 +83,8 @@ pwsh -File scripts/install-dev.ps1
 - 仅桌面版。Web profile 的侧栏浏览器是 iframe，没有 `executeJavaScript`。
 - MCP server 是进程级，没有每会话隔离。
 - bridge 命令不按窗口路由：同时打开多个 DSH 窗口时，命令可能被任一窗口的渲染层取走并在该窗口的侧栏浏览器执行；建议单窗口使用。
-- 跨域 iframe 内容不可读。
+- 跨域 iframe 内容不可读；同源 iframe 内部也未递归遍历。
+- 侧栏 webview 中页面内导航（链接点击、表单提交）不产生历史条目，`browser_history back` 会跳过这些页面，回到最近一次 `browser_navigate` 的页面。
 - ref 只在最近一次 `browser_snapshot` 内有效。
 - 截图超过 1600x1200 会等比缩放；base64 超过约 2M 字符时拒绝返回，并提示改用 browser_snapshot。
 
