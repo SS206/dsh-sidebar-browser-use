@@ -27,7 +27,7 @@
   - `browser_history` 等待修复：`navigate → back` 正确返回新 URL；栈底报“没有可后退的历史”。
   - 工作区 ACL 修复：workspace-write 下沙箱与文件工具正常（此前 `SetNamedSecurityInfoW Win32 5`）。
 - 测试确认的行为特性：侧栏 webview 中**页面内导航（点击链接、表单提交）不产生历史条目**，`browser_history back` 会跳过该页、回到最近一次 `browser_navigate` 的页面（受控实验复现）。
-- 本地质量门（2026-10-21）：`npm test` 18/18；`node --check` 通过；`npm pack --dry-run` 通过（13 文件 / 23 kB）。
+- 本地质量门（2026-10-21）：`npm test` 18/18；`node --check` 通过；`npm pack --dry-run` 通过（12 文件 / 21 kB，双语 README 合并后）。
 - 仓库：`main` 分支，本地 commit（2026-10-21 已提交 history 修复与文档更新），无远程；工作树状态以 `git status` 为准。诊断代码（`dbg(` / debug.log）仍在，发布前删除。
 
 ## 架构与数据流
@@ -64,7 +64,7 @@
 - `package.json`：安装契约——`dsh.bundle.patch`、`dsh.client.inject`（connection + ui-sidebar-right）、`dsh.engines.dsh`、`files` 白名单。
 - `scripts/install-dev.ps1` / `uninstall-dev.ps1`：link 安装与回滚（备份 profile 的 package.json/pnpm-lock/cordis.patch.yml）。
 - `test/*.test.mjs`：18 项（approval 6、catalog 5、errors 3、host 3、server 1）；`test/server-smoke.mjs` 是手动冒烟脚本（待删）。
-- `README.md` / `README.zh.md` / `CHANGELOG.md` / `LICENSE`：使用者文档与版本历史，状态变化需同步（见“文档与状态同步”）。
+- `README.md`（中英双语精简版）/ `CHANGELOG.md` / `LICENSE`：使用者文档与版本历史，状态变化需同步（见“文档与状态同步”）。
 - `.gitattributes`：md/js/mjs/yml 强制 LF、ps1 强制 CRLF；`.gitignore` 忽略 node_modules、日志、临时文件、密钥类文件（.env/*.pem/*.key/bridge.json）、构建产物与环境产物。
 
 ## 开发命令
@@ -74,7 +74,7 @@ cd <repo-root>                    # 仓库根目录（本机为项目所在目�
 npm install
 npm test                          # 等价 node --test "test/**/*.test.mjs"，当前 18 项全过
 node --check lib/index.js         # 逐文件：lib/*.js、mcp/*.js 共 8 个
-npm pack --dry-run                # 发布预检：13 个文件 / ~23 kB
+npm pack --dry-run                # 发布预检：12 个文件 / ~21 kB
 ```
 
 - `lib/client.js` 是 renderer bundle，不能当普通 ESM import 做单测，也没有自动化覆盖；改它只能真机验证。
@@ -188,9 +188,9 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 
 ## 文档与状态同步
 
-- 交接权威源是本文件（状态、验证清单、审批原理、待办）；README/README.zh 面向使用者，CHANGELOG 记录版本历史。
-- 2026-10-21：审批矩阵已真机验证通过，四份文档已同步；README/README.zh 的 Approval 段已补充审批实现原理摘要。
-- 每次状态变化（删除 dbg、发布）必须三处同步：本文件、README(.zh)、CHANGELOG。
+- 交接权威源是本文件（状态、验证清单、审批原理、待办）；README.md（中英双语）面向使用者，CHANGELOG 记录版本历史。
+- 2026-10-21：审批矩阵已真机验证通过，文档已同步；README.md 已重写为精简双语版（原 README.zh.md 内容已并入，文件移至 .trash 备份）。
+- 每次状态变化（删除 dbg、发布）必须同步：本文件、README.md、CHANGELOG.md。
 
 ## 待办
 
@@ -198,11 +198,11 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 
 1. 移除 host 半诊断代码：搜索 `dbg(`（`lib/index.js`），删除 debug.log 写入；发布前确认 `$DSH_HOME/browser-use-mcp/debug.log` 不再增长。
 2. 删除或归档 `test/server-smoke.mjs`（已被 `test/server.test.mjs` 覆盖）。
-3. 文档收尾：发布前复核 README/README.zh/CHANGELOG 与实现一致（本次已更新）。
+3. 文档收尾：发布前复核 README.md（中英双语）/CHANGELOG.md 与实现一致（本次已更新）。
 
 ### 发布准备
 
-4. `npm pack` 预检已通过（13 文件 / 23 kB）；仍需 README 截图/演示、GitHub 仓库。
+4. `npm pack` 预检已通过（12 文件 / 21 kB）；仍需 README 截图/演示、GitHub 仓库、package.json 的 repository/homepage 元数据。
 5. `~/.dsh/repo-structure.md` 清单登记（[dev-local]）——已确认当前**未登记**。
 6. 评估是否公开 `browser_eval`（默认关闭）及包元数据（repository/homepage/keywords）。
 
