@@ -13,7 +13,7 @@
 
 环境：DSH Desktop 0.2.0-rc.2（Electron 44 / Chromium 152，host Node 24），MCP 服务端依赖 @modelcontextprotocol/server 2.3.1（对应 2026-07-28 协议），测试用 @modelcontextprotocol/client 2.0.0。
 
-## 当前状态（2026-10-21 11:45）
+## 当前状态（2026-10-22 11:55）
 
 - **浏览器功能真机测试通过**（2026-10-21，侧栏 webview + 本地测试页）：list / tabs / snapshot / text / screenshot（PNG 附件可见，708x1200）/ navigate / click / fill / 表单提交 / press / history（back、forward、reload）/ open 全部正常；`INVALID_ARGS`、`EVAL_DISABLED`、`NO_SUCH_REF`、`NO_BROWSER_TAB` 错误码与 hint 正确。
 - **审批矩阵真机验证通过**（2026-10-21，重启加载新模块后）：
@@ -28,7 +28,8 @@
   - 工作区 ACL 修复：workspace-write 下沙箱与文件工具正常（此前 `SetNamedSecurityInfoW Win32 5`）。
 - 测试确认的行为特性：侧栏 webview 中**页面内导航（点击链接、表单提交）不产生历史条目**，`browser_history back` 会跳过该页、回到最近一次 `browser_navigate` 的页面（受控实验复现）。
 - 本地质量门（2026-10-21）：`npm test` 18/18；`node --check` 通过；`npm pack --dry-run` 通过（13 文件 / 25 kB，中英两份 README）。
-- 仓库：`main` 分支，本地 commit（2026-10-21 已提交 history 修复与文档更新），无远程；工作树状态以 `git status` 为准。诊断代码（`dbg(` / debug.log）仍在，发布前删除。
+- 仓库：`main` 分支，本地 commit（2026-10-22 已提交改名），无远程；工作树状态以 `git status` 为准。诊断代码（`dbg(` / debug.log）仍在，发布前删除。
+- **2026-10-22 项目/包名重命名**：`dsh-browser-use-mcp` → `dsh-sidebar-browser-use`。package.json、cordis.patch.yml、安装/卸载脚本、README/CHANGELOG 已更新；desktop profile 已切到新包名（link 指向项目目录）并完成 pnpm install。**项目目录名尚未改**：DSH 运行中锁定工作区，在线 rename 返回 EBUSY；退出 DSH 后运行 `scripts/rename-project-dir.ps1` 完成目录改名与 profile link 更新。运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
 
 ## 架构与数据流
 
@@ -63,6 +64,7 @@
 - `cordis.patch.yml`：bundle patch（host 行 + `@deepseek-ai/dsh-mcp-client` 行，MCP server 路径按 profile 拼接）。
 - `package.json`：安装契约——`dsh.bundle.patch`、`dsh.client.inject`（connection + ui-sidebar-right）、`dsh.engines.dsh`、`files` 白名单。
 - `scripts/install-dev.ps1` / `uninstall-dev.ps1`：link 安装与回滚（备份 profile 的 package.json/pnpm-lock/cordis.patch.yml）。
+- `scripts/rename-project-dir.ps1`：退出 DSH 后把项目目录改名为 `dsh-sidebar-browser-use` 并同步 profile link（DSH 运行时会 EBUSY）。
 - `test/*.test.mjs`：18 项（approval 6、catalog 5、errors 3、host 3、server 1）；`test/server-smoke.mjs` 是手动冒烟脚本（待删）。
 - `README.md` / `README.zh.md` / `CHANGELOG.md` / `LICENSE`：使用者文档与版本历史，状态变化需同步（见“文档与状态同步”）。
 - `.gitattributes`：md/js/mjs/yml 强制 LF、ps1 强制 CRLF；`.gitignore` 忽略 node_modules、日志、临时文件、密钥类文件（.env/*.pem/*.key/bridge.json）、构建产物与环境产物。
@@ -173,6 +175,7 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 - 备份位于 `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`；安装会改 profile 的 package.json（link 依赖）与 `dsh.profile.bundles`，并在 profile 目录跑 DSH 自带 pnpm install。
 - 桌面版 DSH 安装目录由脚本从运行进程推断（Windows 默认安装在 Program Files 下的 dsh 目录）；推断失败时传 `-DshInstallDir`。
 - 当前 desktop profile 已是 link 安装（Junction 指向项目），重装前先跑备份。
+- 目录改名（2026-10-22）：项目目录仍为旧名 `dsh-browser-use-mcp`；退出 DSH 后运行 `pwsh -File scripts/rename-project-dir.ps1` 自动改名、更新 profile link 并跑 pnpm install，然后重启 DSH。
 
 ## 回归验证清单（2026-10-21 已全部通过）
 
@@ -190,6 +193,7 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 
 - 交接权威源是本文件（状态、验证清单、审批原理、待办）；README/README.zh 面向使用者，CHANGELOG 记录版本历史。
 - 2026-10-21：审批矩阵已真机验证通过，四份文档已同步；README/README.zh 的 Approval 段已补充审批实现原理摘要。
+- 2026-10-22：项目/包名重命名为 `dsh-sidebar-browser-use`，四份文档与安装脚本已同步；目录改名脚本见 `scripts/rename-project-dir.ps1`。
 - 每次状态变化（删除 dbg、发布）必须三处同步：本文件、README(.zh)、CHANGELOG。
 
 ## 待办
