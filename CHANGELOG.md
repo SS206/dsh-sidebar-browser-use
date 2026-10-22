@@ -4,6 +4,10 @@
 
 初始实现，尚未发布。
 
+### Changed
+
+- 2026-10-22：项目/包名重命名为 `dsh-sidebar-browser-use`（原 `dsh-browser-use-mcp`）；运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名（`browser_use_*`）与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
+
 ### Added
 
 - 两工具 MCP 面：`browser_use_list`（目录）与 `browser_use_call`（唯一执行入口）。

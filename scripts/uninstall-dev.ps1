@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Uninstall dsh-browser-use-mcp from a DSH profile.
+  Uninstall dsh-sidebar-browser-use from a DSH profile.
 
 .DESCRIPTION
   Restores the most recent install backup (or -BackupDir) and re-runs the
@@ -20,7 +20,7 @@ $packagePath = Join-Path $profileDir 'package.json'
 if (-not (Test-Path $packagePath)) { throw "profile package.json not found: $packagePath" }
 
 if ([string]::IsNullOrWhiteSpace($BackupDir)) {
-  $candidate = Get-ChildItem (Join-Path $DshHome '.backups') -Directory -Filter 'browser-use-mcp-*' -ErrorAction SilentlyContinue |
+  $candidate = Get-ChildItem (Join-Path $DshHome '.backups') -Directory -Filter 'sidebar-browser-use-*' -ErrorAction SilentlyContinue |
     Sort-Object LastWriteTime -Descending | Select-Object -First 1
   if ($null -ne $candidate) { $BackupDir = $candidate.FullName }
 }
@@ -33,10 +33,10 @@ if (-not [string]::IsNullOrWhiteSpace($BackupDir)) {
   Write-Host "restored backup: $BackupDir"
 } else {
   $json = Get-Content $packagePath -Raw | ConvertFrom-Json
-  if ($json.dependencies.PSObject.Properties.Name -contains 'dsh-browser-use-mcp') {
-    $json.dependencies.PSObject.Properties.Remove('dsh-browser-use-mcp')
+  if ($json.dependencies.PSObject.Properties.Name -contains 'dsh-sidebar-browser-use') {
+    $json.dependencies.PSObject.Properties.Remove('dsh-sidebar-browser-use')
   }
-  $json.dsh.profile.bundles = @($json.dsh.profile.bundles | Where-Object { $_ -ne 'dsh-browser-use-mcp' })
+  $json.dsh.profile.bundles = @($json.dsh.profile.bundles | Where-Object { $_ -ne 'dsh-sidebar-browser-use' })
   $json | ConvertTo-Json -Depth 30 | Set-Content -Path $packagePath -Encoding utf8NoBOM
   Write-Host 'removed dependency and bundle entry (no backup found)'
 }

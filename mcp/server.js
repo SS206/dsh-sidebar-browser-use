@@ -1,5 +1,5 @@
 /**
- * dsh-browser-use-mcp - stdio MCP server (MCP TypeScript SDK v2, 2026-07-28).
+ * dsh-sidebar-browser-use - stdio MCP server (MCP TypeScript SDK v2, 2026-07-28).
  *
  * The model-facing surface is exactly two tools:
  *   - browser_use_list: returns the internal tool catalog (no side effects);

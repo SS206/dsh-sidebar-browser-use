@@ -1,5 +1,5 @@
 {
-  "name": "dsh-browser-use-mcp",
+  "name": "dsh-sidebar-browser-use",
   "version": "0.1.0",
   "description": "Browser-use MCP for DeepSeek Harness: drive the built-in right-sidebar browser through two stable tools (browser_use_list + browser_use_call), keeping the model-facing tool surface constant.",
   "keywords": [

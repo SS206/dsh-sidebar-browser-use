@@ -1,4 +1,4 @@
-# dsh-browser-use-mcp bundle patch.
+# dsh-sidebar-browser-use bundle patch.
 #
 # Mounts two rows:
 #   1. the host half (this package) - owns the loopback bridge, the
@@ -9,7 +9,7 @@
 # the desktop profile (for example under the web profile).
 - insert:
     - id: browser-use-mcp
-      name: 'dsh-browser-use-mcp'
+      name: 'dsh-sidebar-browser-use'
     - id: mcp-browser-use
       name: '@deepseek-ai/dsh-mcp-client'
       config:
@@ -17,6 +17,6 @@
         transport: stdio
         command: !!js "process.execPath"
         args:
-          - !!js "process.getBuiltinModule('path').join(process.env.DSH_HOME || (process.getBuiltinModule('os').homedir() + '/.dsh'), 'profiles', 'desktop', 'node_modules', 'dsh-browser-use-mcp', 'mcp', 'server.js')"
+          - !!js "process.getBuiltinModule('path').join(process.env.DSH_HOME || (process.getBuiltinModule('os').homedir() + '/.dsh'), 'profiles', 'desktop', 'node_modules', 'dsh-sidebar-browser-use', 'mcp', 'server.js')"
         failOnStartupError: false
         toolCallTimeoutMs: 180000

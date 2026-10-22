@@ -1,4 +1,4 @@
-# AGENTS.md — dsh-browser-use-mcp
+# AGENTS.md — dsh-sidebar-browser-use
 
 本文件面向接手本项目的 agent。请先读完再动手。
 
@@ -170,7 +170,7 @@ pwsh -File scripts/install-dev.ps1
 pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 ```
 
-- 备份位于 `$DSH_HOME/.backups/browser-use-mcp-<timestamp>`；安装会改 profile 的 package.json（link 依赖）与 `dsh.profile.bundles`，并在 profile 目录跑 DSH 自带 pnpm install。
+- 备份位于 `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`；安装会改 profile 的 package.json（link 依赖）与 `dsh.profile.bundles`，并在 profile 目录跑 DSH 自带 pnpm install。
 - 桌面版 DSH 安装目录由脚本从运行进程推断（Windows 默认安装在 Program Files 下的 dsh 目录）；推断失败时传 `-DshInstallDir`。
 - 当前 desktop profile 已是 link 安装（Junction 指向项目），重装前先跑备份。
 

@@ -1,4 +1,4 @@
-# dsh-browser-use-mcp
+# dsh-sidebar-browser-use
 
 [中文版](README.zh.md)
 
@@ -36,7 +36,7 @@ The host half registers no model-facing tools. Approval is delegated to DSH: the
 ## Install
 
 ```bash
-dsh plugin --profile desktop add dsh-browser-use-mcp
+dsh plugin --profile desktop add dsh-sidebar-browser-use
 ```
 
 For a local checkout:
@@ -46,7 +46,7 @@ pwsh -File scripts/install-dev.ps1
 # restart DSH afterwards
 ```
 
-The install script backs up the profile files to `$DSH_HOME/.backups/browser-use-mcp-<timestamp>`; roll back with `scripts/uninstall-dev.ps1`.
+The install script backs up the profile files to `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`; roll back with `scripts/uninstall-dev.ps1`.
 
 ## Configuration
 

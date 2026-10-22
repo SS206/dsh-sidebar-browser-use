@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Install dsh-browser-use-mcp into a DSH profile (development link mode).
+  Install dsh-sidebar-browser-use into a DSH profile (development link mode).
 
 .DESCRIPTION
   Backs up the profile's package.json, pnpm-lock.yaml and cordis.patch.yml,
@@ -33,7 +33,7 @@ $patchPath = Join-Path $profileDir 'cordis.patch.yml'
 if (-not (Test-Path $packagePath)) { throw "profile package.json not found: $packagePath" }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backupDir = Join-Path $DshHome ".backups\browser-use-mcp-$stamp"
+$backupDir = Join-Path $DshHome ".backups\sidebar-browser-use-$stamp"
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 Copy-Item $packagePath (Join-Path $backupDir 'package.json')
 if (Test-Path $lockPath) { Copy-Item $lockPath (Join-Path $backupDir 'pnpm-lock.yaml') }
@@ -42,15 +42,15 @@ Write-Host "backup: $backupDir"
 
 $json = Get-Content $packagePath -Raw | ConvertFrom-Json
 if ($null -eq $json.dependencies) { $json | Add-Member -NotePropertyName dependencies -NotePropertyValue ([pscustomobject]@{}) }
-if ($json.dependencies.PSObject.Properties.Name -contains 'dsh-browser-use-mcp') {
-  $json.dependencies.'dsh-browser-use-mcp' = "link:$project"
+if ($json.dependencies.PSObject.Properties.Name -contains 'dsh-sidebar-browser-use') {
+  $json.dependencies.'dsh-sidebar-browser-use' = "link:$project"
 } else {
-  $json.dependencies | Add-Member -NotePropertyName 'dsh-browser-use-mcp' -NotePropertyValue "link:$project"
+  $json.dependencies | Add-Member -NotePropertyName 'dsh-sidebar-browser-use' -NotePropertyValue "link:$project"
 }
 if ($null -eq $json.dsh.profile.bundles) {
-  $json.dsh.profile.bundles = @('dsh-browser-use-mcp')
-} elseif ($json.dsh.profile.bundles -notcontains 'dsh-browser-use-mcp') {
-  $json.dsh.profile.bundles = @($json.dsh.profile.bundles) + 'dsh-browser-use-mcp'
+  $json.dsh.profile.bundles = @('dsh-sidebar-browser-use')
+} elseif ($json.dsh.profile.bundles -notcontains 'dsh-sidebar-browser-use') {
+  $json.dsh.profile.bundles = @($json.dsh.profile.bundles) + 'dsh-sidebar-browser-use'
 }
 $json | ConvertTo-Json -Depth 30 | Set-Content -Path $packagePath -Encoding utf8NoBOM
 Write-Host "profile updated: $packagePath"

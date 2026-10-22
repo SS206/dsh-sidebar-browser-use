@@ -1,4 +1,4 @@
-# dsh-browser-use-mcp
+# dsh-sidebar-browser-use
 
 [English](README.md)
 
@@ -36,7 +36,7 @@ host 半不注册任何模型工具。审批完全交给 DSH：非 danger-full-a
 ## 安装
 
 ```bash
-dsh plugin --profile desktop add dsh-browser-use-mcp
+dsh plugin --profile desktop add dsh-sidebar-browser-use
 ```
 
 本地开发：
@@ -46,7 +46,7 @@ pwsh -File scripts/install-dev.ps1
 # 之后重启 DSH
 ```
 
-安装脚本会备份 profile 文件到 `$DSH_HOME/.backups/browser-use-mcp-<timestamp>`；回滚用 `scripts/uninstall-dev.ps1`。
+安装脚本会备份 profile 文件到 `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`；回滚用 `scripts/uninstall-dev.ps1`。
 
 ## 配置
 
