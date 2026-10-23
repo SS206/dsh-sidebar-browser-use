@@ -13,7 +13,7 @@
 
 环境：DSH Desktop 0.2.0-rc.2（Electron 44 / Chromium 152，host Node 24），MCP 服务端依赖 @modelcontextprotocol/server 2.3.1（对应 2026-07-28 协议），测试用 @modelcontextprotocol/client 2.0.0。
 
-## 当前状态（2026-10-22 11:55）
+## 当前状态（2026-10-23）
 
 - **浏览器功能真机测试通过**（2026-10-21，侧栏 webview + 本地测试页）：list / tabs / snapshot / text / screenshot（PNG 附件可见，708x1200）/ navigate / click / fill / 表单提交 / press / history（back、forward、reload）/ open 全部正常；`INVALID_ARGS`、`EVAL_DISABLED`、`NO_SUCH_REF`、`NO_BROWSER_TAB` 错误码与 hint 正确。
 - **审批矩阵真机验证通过**（2026-10-21，重启加载新模块后）：
@@ -27,9 +27,9 @@
   - `browser_history` 等待修复：`navigate → back` 正确返回新 URL；栈底报“没有可后退的历史”。
   - 工作区 ACL 修复：workspace-write 下沙箱与文件工具正常（此前 `SetNamedSecurityInfoW Win32 5`）。
 - 测试确认的行为特性：侧栏 webview 中**页面内导航（点击链接、表单提交）不产生历史条目**，`browser_history back` 会跳过该页、回到最近一次 `browser_navigate` 的页面（受控实验复现）。
-- 本地质量门（2026-10-21）：`npm test` 18/18；`node --check` 通过；`npm pack --dry-run` 通过（13 文件 / 25 kB，中英两份 README）。
-- 仓库：`main` 分支，本地 commit（2026-10-22 已提交改名），无远程；工作树状态以 `git status` 为准。诊断代码（`dbg(` / debug.log）仍在，发布前删除。
-- **2026-10-22 项目/包名重命名**：`dsh-browser-use-mcp` → `dsh-sidebar-browser-use`。package.json、cordis.patch.yml、安装/卸载脚本、README/CHANGELOG 已更新；desktop profile 已切到新包名（link 指向项目目录）并完成 pnpm install。**项目目录名尚未改**：DSH 运行中锁定工作区，在线 rename 返回 EBUSY；退出 DSH 后运行 `scripts/rename-project-dir.ps1` 完成目录改名与 profile link 更新。运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
+- 本地质量门（2026-10-23 复核）：`npm test` 18/18；`node --check` 8 个文件全部通过；`npm pack --dry-run` 通过（13 文件 / ~25 kB，中英两份 README）。
+- 仓库：`main` 分支，本地 commit（含 2026-10-22 改名、2026-10-23 发布前清理），无远程；工作树状态以 `git status` 为准。宿主侧临时诊断（`dbg(` / debug.log）已于 2026-10-23 移除，`lib/index.js` 只写标准 DSH logger。
+- **2026-10-22 项目/包名重命名**：`dsh-browser-use-mcp` → `dsh-sidebar-browser-use`，2026-10-23 全部落地：package.json、cordis.patch.yml、安装/卸载脚本、README/CHANGELOG 已更新；desktop profile 的 dependency/link/bundles 均指向新名与新目录；**项目目录本身已完成改名**，旧名 `dsh-browser-use-mcp` 的悬空 junction 已删除。运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
 
 ## 架构与数据流
 
@@ -37,7 +37,7 @@
 模型
   -> mcp__browser-use__browser_use_list / browser_use_call
   -> mcp/server.js（stdio MCP server）
-       -> 本机 HTTP bridge（127.0.0.1，Bearer token，描述文件 $DSH_HOME/browser-use-mcp/bridge.json）
+       -> 本机 HTTP bridge（挂在 DSH webServer 端口上，Bearer token，描述文件 $DSH_HOME/browser-use-mcp/bridge.json）
             -> host 半 lib/index.js
                  -> ctx.connection.fetch.register({ path: '/api/browser-use' }) 渲染层通道
                  -> tools/pre-execute 审批钩子
@@ -64,8 +64,8 @@
 - `cordis.patch.yml`：bundle patch（host 行 + `@deepseek-ai/dsh-mcp-client` 行，MCP server 路径按 profile 拼接）。
 - `package.json`：安装契约——`dsh.bundle.patch`、`dsh.client.inject`（connection + ui-sidebar-right）、`dsh.engines.dsh`、`files` 白名单。
 - `scripts/install-dev.ps1` / `uninstall-dev.ps1`：link 安装与回滚（备份 profile 的 package.json/pnpm-lock/cordis.patch.yml）。
-- `scripts/rename-project-dir.ps1`：退出 DSH 后把项目目录改名为 `dsh-sidebar-browser-use` 并同步 profile link（DSH 运行时会 EBUSY）。
-- `test/*.test.mjs`：18 项（approval 6、catalog 5、errors 3、host 3、server 1）；`test/server-smoke.mjs` 是手动冒烟脚本（待删）。
+- `scripts/rename-project-dir.ps1`：目录改名收尾脚本（改名、同步 profile link、跑 pnpm install）；2026-10-23 已执行完毕，保留以备用。
+- `test/*.test.mjs`：18 项（approval 6、catalog 5、errors 3、host 3、server 1）；原 `test/server-smoke.mjs` 已被 `server.test.mjs` 覆盖，2026-10-23 归档到仓库外 `.trash`。
 - `README.md` / `README.zh.md` / `CHANGELOG.md` / `LICENSE`：使用者文档与版本历史，状态变化需同步（见“文档与状态同步”）。
 - `.gitattributes`：md/js/mjs/yml 强制 LF、ps1 强制 CRLF；`.gitignore` 忽略 node_modules、日志、临时文件、密钥类文件（.env/*.pem/*.key/bridge.json）、构建产物与环境产物。
 
@@ -156,7 +156,7 @@ ctx.on('tools/pre-execute', async (exec, next) => {
 | workspace-write | allow，不弹 | ask，弹卡 | 返回 `the user rejected tool`，不执行 | 执行成功 |
 | read-only | allow，不弹 | ask，弹卡 | 返回 `the user rejected tool`，不执行 | 执行成功 |
 
-日志实录：`approval decision: tool=browser_open mode=workspace-write -> ask`、`tool=browser_tabs mode=workspace-write -> allow`、`tool=browser_navigate mode=read-only -> ask`。
+日志实录（2026-10-21 当时的 debug.log，该日志已于 2026-10-23 移除）：`approval decision: tool=browser_open mode=workspace-write -> ask`、`tool=browser_tabs mode=workspace-write -> allow`、`tool=browser_navigate mode=read-only -> ask`。
 
 ### 与权限体系的关系与缺口
 
@@ -175,16 +175,16 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 - 备份位于 `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`；安装会改 profile 的 package.json（link 依赖）与 `dsh.profile.bundles`，并在 profile 目录跑 DSH 自带 pnpm install。
 - 桌面版 DSH 安装目录由脚本从运行进程推断（Windows 默认安装在 Program Files 下的 dsh 目录）；推断失败时传 `-DshInstallDir`。
 - 当前 desktop profile 已是 link 安装（Junction 指向项目），重装前先跑备份。
-- 目录改名（2026-10-22）：项目目录仍为旧名 `dsh-browser-use-mcp`；退出 DSH 后运行 `pwsh -File scripts/rename-project-dir.ps1` 自动改名、更新 profile link 并跑 pnpm install，然后重启 DSH。
+- 目录改名（2026-10-22 提出，2026-10-23 完成）：项目目录、profile link 与 pnpm install 均已切到 `dsh-sidebar-browser-use`；`scripts/rename-project-dir.ps1` 保留以备用，仅在需要再次搬迁目录时运行。
 
 ## 回归验证清单（2026-10-21 已全部通过）
 
 以下清单已按顺序真机验证通过，后续改动可复用：
 
-0. 确认已加载新模块：`$DSH_HOME/browser-use-mcp/debug.log` 出现新的 `apply start … apply complete`，且 pre-execute 行带 `arguments={...}`（旧版无此后缀）。
-1. danger-full-access：写操作直接执行；日志 `mode=danger-full-access -> allow`。
-2. workspace-write：写操作弹审批；日志 `mode=workspace-write -> ask` 且 `tool=browser_navigate`。拒绝 → 返回拒绝错误、不执行；批准 → 执行。
-3. read-only：写操作弹审批（`mode=read-only -> ask`）；拒绝 → 不执行。
+0. 确认已加载新模块：`$DSH_HOME/browser-use-mcp/bridge.json` 的 `startedAt`/`pid` 在重启后更新，且 DSH 日志出现 `browser-use-mcp` 的 bridge 启动行；确认 `$DSH_HOME/browser-use-mcp/debug.log` 不再增长（文件已不再写入）。
+1. danger-full-access：写操作直接执行，不弹审批卡。
+2. workspace-write：写操作弹审批卡（卡上可见 `browser_navigate` 与目标 URL）。拒绝 → 返回拒绝错误、不执行；批准 → 执行。
+3. read-only：写操作弹审批卡；拒绝 → 不执行。
 4. 读工具三种模式均可用且不审批。
 5. `browser_eval`：`allowEvaluate=false` 时目录中不出现，调用返回 `EVAL_DISABLED`。
 6. `browser_history`：navigate A → navigate B → back 返回 A；栈底报“没有可后退的历史”。
@@ -194,31 +194,33 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 - 交接权威源是本文件（状态、验证清单、审批原理、待办）；README/README.zh 面向使用者，CHANGELOG 记录版本历史。
 - 2026-10-21：审批矩阵已真机验证通过，四份文档已同步；README/README.zh 的 Approval 段已补充审批实现原理摘要。
 - 2026-10-22：项目/包名重命名为 `dsh-sidebar-browser-use`，四份文档与安装脚本已同步；目录改名脚本见 `scripts/rename-project-dir.ps1`。
-- 每次状态变化（删除 dbg、发布）必须三处同步：本文件、README(.zh)、CHANGELOG。
+- 2026-10-23：发布前清理——移除 dbg 诊断与 debug.log、归档 server-smoke、删除旧 junction、四份文档同步为“发布候选”；`npm test` / `node --check` / `npm pack --dry-run` 复跑通过。
+- 每次状态变化（发布、元数据变更）必须三处同步：本文件、README(.zh)、CHANGELOG。
 
 ## 待办
 
-### 发布阻断项
+### 发布前最后一步（需人工）
 
-1. 移除 host 半诊断代码：搜索 `dbg(`（`lib/index.js`），删除 debug.log 写入；发布前确认 `$DSH_HOME/browser-use-mcp/debug.log` 不再增长。
-2. 删除或归档 `test/server-smoke.mjs`（已被 `test/server.test.mjs` 覆盖）。
-3. 文档收尾：发布前复核 README/README.zh/CHANGELOG 与实现一致（本次已更新）。
+1. 重启 DSH 加载 2026-10-23 的新模块，按“回归验证清单”确认：bridge 正常注册、审批矩阵不变、`$DSH_HOME/browser-use-mcp/debug.log` 大小不再增长。
+2. 建 GitHub 仓库 `SS206/dsh-sidebar-browser-use` 并推送（本机无远程；`url.git@github.com:.insteadOf` 会把 https remote 显示为 SSH，属正常）。
+3. 可选：补 README 截图/演示。
 
-### 发布准备
+### 发布准备状态
 
-4. `npm pack` 预检已通过（13 文件 / 25 kB，含中英两份 README）；仍需 README 截图/演示、GitHub 仓库。
-5. `~/.dsh/repo-structure.md` 清单登记（[dev-local]）——已确认当前**未登记**。
-6. 评估是否公开 `browser_eval`（默认关闭）及包元数据（repository/homepage/keywords）。
+4. `npm pack --dry-run` 通过（13 文件 / ~25 kB）；package.json 已补 `author` / `repository` / `homepage` / `bugs`（URL 按 `SS206/dsh-sidebar-browser-use` 预留，建仓若改名需同步）。
+5. `~/.dsh/repo-structure.md` 已登记 `[dev-local]`（2026-10-23）。
+6. `browser_eval` 保持默认关闭，不随 0.1.0 公开发布；是否公开留待后续版本评估。
+7. 发布动作由用户执行（需 npm 凭据）：`npm publish`。
 
-### 功能增强（按价值排序）
+### 功能增强（0.1.0 不含，按价值排序）
 
-7. `browser_open` 后等待新页面出现（轮询 tabs 的 lease），而不是让模型自己再查一次。
-8. 多窗口命令路由：pending 命令绑定 clientId/session，poll 只取本窗口命令，result 校验归属（当前任一 renderer 可领取/回传）。
-9. 等待原语 `browser_wait`（等待 selector/文本/导航完成），降低动态页面下 ref 失效导致的失败率。
-10. 观测能力：console 日志、网络请求摘要、同源 iframe 遍历。
-11. `browser_fill`/`browser_press` 目前用合成 DOM 事件，需真机验证 React/Vue 受控组件；必要时改用更接近真实输入的方式。
-12. 截图落盘（写临时文件供 `read_image` 使用），解决 PTC/run_code 下 image content 不可见的场景。
-13. 安全增强：bridge/client 侧也对 `browser_eval` 做 allowEvaluate 门控；pending 队列加上限。
+8. `browser_open` 后等待新页面出现（轮询 tabs 的 lease），而不是让模型自己再查一次。
+9. 多窗口命令路由：pending 命令绑定 clientId/session，poll 只取本窗口命令，result 校验归属（当前任一 renderer 可领取/回传）。
+10. 等待原语 `browser_wait`（等待 selector/文本/导航完成），降低动态页面下 ref 失效导致的失败率。
+11. 观测能力：console 日志、网络请求摘要、同源 iframe 遍历。
+12. `browser_fill`/`browser_press` 目前用合成 DOM 事件，需真机验证 React/Vue 受控组件；必要时改用更接近真实输入的方式。
+13. 截图落盘（写临时文件供 `read_image` 使用），解决 PTC/run_code 下 image content 不可见的场景。
+14. 安全增强：bridge/client 侧也对 `browser_eval` 做 allowEvaluate 门控；pending 队列加上限。
 
 ## 已知限制
 
@@ -236,6 +238,6 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 - bridge 复用 DSH webServer 端口，监听范围由 DSH 决定（不要假设仅 127.0.0.1）；另加随机 Bearer token。
 - bridge token 写在 `$DSH_HOME/browser-use-mcp/bridge.json`；日志、回复、提交中不得出现 token 值。
 - URL 仅 http/https，拒绝内嵌凭据、file:、javascript:（catalog/dispatch 与 client 双处校验）。
-- 日志不记录页面正文/表单值/截图内容；debug.log 只记录阶段名与工具名/参数摘要，但会记录所有工具名（含非本插件工具），发布前移除。
+- 日志不记录页面正文/表单值/截图内容；发布版只写标准 DSH logger（不再有 debug.log），不得重新引入记录全部工具参数的旁路日志。
 - 新增工具时务必确认 `kind` 正确，否则审批门会漏放。
 - 浏览器工具不是安全边界，安全依赖会话权限预设 + DSH 审批。

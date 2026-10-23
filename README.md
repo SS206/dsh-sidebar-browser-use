@@ -6,7 +6,7 @@ Browser-use MCP for DeepSeek Harness. The model drives the built-in right-sideba
 
 ## Status
 
-Under development (0.1.0, unpublished). The browser path and the approval matrix were verified end to end in real-machine tests on 2026-10-21: list, tabs, snapshot, text, screenshot, navigate, click, fill+submit, press, history and open all work with stable error codes; read tools never prompt, write tools prompt in read-only and workspace-write sessions (reject = not executed, approve = executed) and never prompt in danger-full-access. The host-side diagnostic log (`$DSH_HOME/browser-use-mcp/debug.log`) stays until release.
+Release candidate (0.1.0, not yet published). The browser path and the approval matrix were verified end to end in real-machine tests on 2026-10-21: list, tabs, snapshot, text, screenshot, navigate, click, fill+submit, press, history and open all work with stable error codes; read tools never prompt, write tools prompt in read-only and workspace-write sessions (reject = not executed, approve = executed) and never prompt in danger-full-access. The temporary host-side diagnostic log was removed on 2026-10-23; the host half now writes only through the standard DSH logger.
 
 ## Why two tools
 
@@ -34,6 +34,8 @@ model
 The host half registers no model-facing tools. Approval is delegated to DSH: the host half returns `{ kind: 'ask' }` from `tools/pre-execute` for write tools outside danger-full-access sessions.
 
 ## Install
+
+Once published:
 
 ```bash
 dsh plugin --profile desktop add dsh-sidebar-browser-use
@@ -75,7 +77,7 @@ Verified on 2026-10-21 in all three modes: read-only and workspace-write ask for
 
 ## Security notes
 
-- The bridge listens on 127.0.0.1 only, with a random per-boot bearer token stored in `$DSH_HOME/browser-use-mcp/bridge.json` (created with mode 0600 on POSIX; on Windows it relies on the user-directory ACL).
+- The bridge is mounted on the DSH web server port, so its listening scope is decided by DSH rather than by this plugin, and every request needs the random per-boot bearer token stored in `$DSH_HOME/browser-use-mcp/bridge.json` (created with mode 0600 on POSIX; on Windows it relies on the user-directory ACL).
 - URLs are restricted to http/https without embedded credentials; `file:` and `javascript:` are rejected.
 - Snapshots and text are truncated; screenshots are downscaled before encoding.
 - Like every browser tool, this is not a security boundary: run it in a session whose permission preset you trust.
@@ -92,7 +94,7 @@ Verified on 2026-10-21 in all three modes: read-only and workspace-write ask for
 
 ## Troubleshooting
 
-- Host diagnostics: `$DSH_HOME/browser-use-mcp/debug.log` records apply stages plus every `tools/pre-execute` tool name, argument summary and approval decision.
+- Host diagnostics: the plugin logs through the standard DSH logger (`browser-use-mcp`); `$DSH_HOME/browser-use-mcp/bridge.json` reports the live port, pid and start time. There is no separate log file any more.
 - Restart DSH after changing host/client code: plugin_manager enable/disable does not re-read modules from disk (ESM cache).
 - `BRIDGE_NOT_READY`: host half not started or stale bridge.json; restart DSH.
 - `CLIENT_OFFLINE`: the renderer in the current window is not polling (closed or switching); keep the DSH window in front and retry.

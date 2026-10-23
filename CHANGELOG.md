@@ -18,6 +18,12 @@
 - renderer 半：轮询取命令、可见 webview 定位、a11y 风格快照与 ref、导航/点击/填写/按键/历史/截图。
 - 安装/回滚脚本、探针测试与协议测试（18 项）。
 
+### Removed
+
+- 2026-10-23：移除 host 半的临时诊断（`dbg()` 与 `$DSH_HOME/browser-use-mcp/debug.log`），改由标准 DSH logger 输出；该日志会记录所有工具名与参数摘要（含非本插件工具），不适合随发布保留。
+- 2026-10-23：删除已被 `test/server.test.mjs` 覆盖的 `test/server-smoke.mjs`（归档于仓库外 `.trash`）。
+- 2026-10-23：清理 desktop profile `node_modules` 里指向旧路径的悬空 junction `dsh-browser-use-mcp`。
+
 ### Fixed
 
 - 审批绕过：写工具名带空白可绕过 `WRITE_TOOLS` 精确匹配（两侧统一 trim）。
@@ -35,9 +41,9 @@
 - 2026-10-21 真机验证：浏览器功能全链路（list / tabs / snapshot / text / screenshot / navigate / click / fill+submit / press / history / open）。
 - 2026-10-21 真机验证：审批矩阵三模式——read-only / workspace-write 写操作弹审批（拒绝不执行、批准执行），danger-full-access 直接放行，读工具始终不审批；`browser_eval` 默认关闭返回 `EVAL_DISABLED`。
 - 2026-10-21 真机验证：`browser_history` 等待修复生效（back 返回新 URL，栈底正确报错）。
+- 2026-10-23 发布前复核：`npm test` 18/18、`node --check` 全部通过、`npm pack --dry-run` 通过；诊断代码与冒烟脚本已移除，`lib/index.js` 不再写任何日志文件。
 
 ### Known issues
 
 - 侧栏 webview 中页面内导航（链接点击、表单提交）不产生历史条目，`browser_history` 只能回到最近一次 `browser_navigate` 的页面。
-- host 半仍保留 debug.log 诊断代码，发布前移除。
 - `browser_eval` 在 `allowEvaluate=false` 时审批门放行、由 dispatch 拦截；bridge 路由本身无 eval 门控（本机持有 token 方可越过，属 defense-in-depth 缺口）。

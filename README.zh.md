@@ -6,7 +6,7 @@ DeepSeek Harness 的 browser-use MCP：模型通过两个稳定工具驱动右�
 
 ## 当前状态
 
-开发中（0.1.0，未发布）。浏览器功能与审批矩阵已于 2026-10-21 真机验证通过：list、tabs、snapshot、text、screenshot、navigate、click、fill+submit、press、history、open 均可用，错误码稳定；读工具不弹审批，写工具在 read-only/workspace-write 下弹审批（拒绝不执行、批准执行），danger-full-access 直接放行。宿主侧诊断日志（`$DSH_HOME/browser-use-mcp/debug.log`）保留到发布前。
+发布候选（0.1.0，尚未发布）。浏览器功能与审批矩阵已于 2026-10-21 真机验证通过：list、tabs、snapshot、text、screenshot、navigate、click、fill+submit、press、history、open 均可用，错误码稳定；读工具不弹审批，写工具在 read-only/workspace-write 下弹审批（拒绝不执行、批准执行），danger-full-access 直接放行。宿主侧临时诊断日志已于 2026-10-23 移除，host 半现在只写标准 DSH 日志。
 
 ## 为什么只有两个工具
 
@@ -34,6 +34,8 @@ DeepSeek Harness 的 browser-use MCP：模型通过两个稳定工具驱动右�
 host 半不注册任何模型工具。审批完全交给 DSH：非 danger-full-access 会话中的写操作，由 host 半在 `tools/pre-execute` 返回 `{ kind: 'ask' }`。
 
 ## 安装
+
+发布后可用：
 
 ```bash
 dsh plugin --profile desktop add dsh-sidebar-browser-use
@@ -75,7 +77,7 @@ host 半注册 `tools/pre-execute` 钩子：对 `browser_use_call` 读取 `exec.
 
 ## 安全
 
-- bridge 仅监听 127.0.0.1，使用每次启动随机生成的 Bearer token，存放于 `$DSH_HOME/browser-use-mcp/bridge.json`（类 Unix 上以 0600 创建；Windows 上依赖用户目录 ACL）。
+- bridge 挂在 DSH webServer 的端口上，监听范围由 DSH 决定而非本插件，且每个请求都需要每次启动随机生成的 Bearer token，存放于 `$DSH_HOME/browser-use-mcp/bridge.json`（类 Unix 上以 0600 创建；Windows 上依赖用户目录 ACL）。
 - URL 仅允许 http/https，拒绝内嵌凭据；拒绝 `file:` 与 `javascript:`。
 - 快照与正文截断，截图超过 1600x1200 时先缩放。
 - 和所有浏览器工具一样，它不是安全边界；请在可信的权限预设会话中使用。
@@ -92,7 +94,7 @@ host 半注册 `tools/pre-execute` 钩子：对 `browser_use_call` 读取 `exec.
 
 ## 调试与排障
 
-- 宿主侧诊断：`$DSH_HOME/browser-use-mcp/debug.log` 记录 apply 阶段与每次 `tools/pre-execute` 的工具名、参数摘要与审批决策。
+- 宿主侧诊断：插件写标准 DSH 日志（`browser-use-mcp`）；`$DSH_HOME/browser-use-mcp/bridge.json` 记录当前端口、pid 与启动时间，不再有独立日志文件。
 - 修改 host/client 插件代码后必须**重启 DSH**：plugin_manager 的禁用/启用不会重新读取磁盘模块（ESM 缓存）。
 - `BRIDGE_NOT_READY`：host 半未启动或 bridge.json 过期，重启 DSH。
 - `CLIENT_OFFLINE`：当前窗口的渲染层未在轮询（窗口关闭或切换中），确认 DSH 窗口在前台后重试。
