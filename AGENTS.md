@@ -192,7 +192,7 @@ pwsh -File scripts/uninstall-dev.ps1 -BackupDir <备份目录>
 ## 文档与状态同步
 
 - 交接权威源是本文件（状态、验证清单、审批原理、待办）；README/README.zh 面向使用者，CHANGELOG 记录版本历史。
-- 2026-10-21：审批矩阵已真机验证通过，四份文档已同步；README/README.zh 的 Approval 段已补充审批实现原理摘要。
+- 2026-10-21：审批矩阵已真机验证通过，四份文档已同步；README/README.zh 的 Approval 段曾补充审批实现原理摘要（该段已在 2026-10-24 精简时移除，实现细节以本文件“审批实现原理”为准）。
 - 2026-10-22：项目/包名重命名为 `dsh-sidebar-browser-use`，四份文档与安装脚本已同步；目录改名脚本见 `scripts/rename-project-dir.ps1`。
 - 2026-10-23：发布前清理——移除 dbg 诊断与 debug.log、归档 server-smoke、删除旧 junction、四份文档同步为“发布候选”；`npm test` / `node --check` / `npm pack --dry-run` 复跑通过。
 - 每次状态变化（发布、元数据变更）必须三处同步：本文件、README(.zh)、CHANGELOG。

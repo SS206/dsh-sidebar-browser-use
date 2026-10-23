@@ -4,11 +4,7 @@
 
 DeepSeek Harness 的 browser-use MCP：模型通过两个稳定工具驱动右侧栏内置浏览器，模型侧工具面恒定，不随浏览器能力增长，prompt cache 稳定。
 
-## 当前状态
-
-发布候选（0.1.0，尚未发布）。浏览器功能与审批矩阵已于 2026-10-21 真机验证通过：list、tabs、snapshot、text、screenshot、navigate、click、fill+submit、press、history、open 均可用，错误码稳定；读工具不弹审批，写工具在 read-only/workspace-write 下弹审批（拒绝不执行、批准执行），danger-full-access 直接放行。宿主侧临时诊断日志已于 2026-10-23 移除，host 半现在只写标准 DSH 日志。
-
-## 为什么只有两个工具
+## 暴露的工具
 
 常见的浏览器 MCP 往往一次暴露 15-40 个工具。本插件只暴露：
 
@@ -33,23 +29,6 @@ DeepSeek Harness 的 browser-use MCP：模型通过两个稳定工具驱动右�
 
 host 半不注册任何模型工具。审批完全交给 DSH：非 danger-full-access 会话中的写操作，由 host 半在 `tools/pre-execute` 返回 `{ kind: 'ask' }`。
 
-## 安装
-
-发布后可用：
-
-```bash
-dsh plugin --profile desktop add dsh-sidebar-browser-use
-```
-
-本地开发：
-
-```powershell
-pwsh -File scripts/install-dev.ps1
-# 之后重启 DSH
-```
-
-安装脚本会备份 profile 文件到 `$DSH_HOME/.backups/sidebar-browser-use-<timestamp>`；回滚用 `scripts/uninstall-dev.ps1`。
-
 ## 配置
 
 在 profile 补丁层覆盖 host 行：
@@ -60,27 +39,6 @@ pwsh -File scripts/install-dev.ps1
     allowEvaluate: false      # 是否暴露 browser_eval（可执行任意页面 JS），默认关闭
     commandTimeoutMs: 30000   # 单条命令等待 client 的超时
 ```
-
-## 审批
-
-审批完全委托给 DSH，且只有一个入口：`browser_use_call`。`browser_use_list` 是纯读目录，永不审批。
-
-host 半注册 `tools/pre-execute` 钩子：对 `browser_use_call` 读取 `exec.arguments`、解析会话 sandbox mode，写工具返回 `{ kind: 'ask', reason, displayReason }`，读工具直接放行。`danger-full-access` 会话不弹卡；`read-only` 与 `workspace-write` 会话对每个写工具都弹卡。拒绝或取消会让调用在到达 MCP server 之前失败，浏览器侧不会执行任何动作。该门是 fail-closed 的：拿不到模式或审批通道不可用时按 ask 处理（由 dsh-tools 保证）。
-
-决策本身是一个纯函数（`lib/approval.js`）：先 trim 工具名（带空白无法绕过写工具集合）；未知/读工具放行；`allowEvaluate` 关闭时 `browser_eval` 放行；`danger-full-access` 放行；其余情况返回 `ask`。审批卡包含工具名、目标摘要（URL、ref、方向、按键或脚本前 80 字符）和可选的调用方理由，中英文双语。
-
-`browser_eval` 是独立的能力门控：`allowEvaluate=false` 时目录中不出现、直接返回 `EVAL_DISABLED`（禁用的能力不弹审批卡）；开启后它仍是写工具，非 danger-full-access 会话同样要审批。
-
-嵌套调用同样适用：从 `run_code`/PTC 绑定调用的 `browser_use_call` 仍经过 `tools/pre-execute` 并正常弹审批。
-
-2026-10-21 已在三种模式下验证：read-only 与 workspace-write 对写工具弹审批（拒绝不执行、批准执行）；danger-full-access 不弹；读工具始终不弹。实现细节见 [AGENTS.md](AGENTS.md)。
-
-## 安全
-
-- bridge 挂在 DSH webServer 的端口上，监听范围由 DSH 决定而非本插件，且每个请求都需要每次启动随机生成的 Bearer token，存放于 `$DSH_HOME/browser-use-mcp/bridge.json`（类 Unix 上以 0600 创建；Windows 上依赖用户目录 ACL）。
-- URL 仅允许 http/https，拒绝内嵌凭据；拒绝 `file:` 与 `javascript:`。
-- 快照与正文截断，截图超过 1600x1200 时先缩放。
-- 和所有浏览器工具一样，它不是安全边界；请在可信的权限预设会话中使用。
 
 ## 已知限制
 
@@ -100,16 +58,6 @@ host 半注册 `tools/pre-execute` 钩子：对 `browser_use_call` 读取 `exec.
 - `CLIENT_OFFLINE`：当前窗口的渲染层未在轮询（窗口关闭或切换中），确认 DSH 窗口在前台后重试。
 - `NO_BROWSER_TAB`：右侧栏没有可见浏览器页面，先在右侧栏打开浏览器或调用 browser_open。
 - `NO_SUCH_REF`：ref 已过期，重新调用 browser_snapshot。
-
-## 开发
-
-```bash
-npm install
-node --test "test/**/*.test.mjs"
-node --check lib/index.js
-```
-
-实现细节、约定与踩坑记录见 [AGENTS.md](AGENTS.md)；变更历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## License
 
