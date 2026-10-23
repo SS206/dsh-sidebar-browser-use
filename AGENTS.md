@@ -28,7 +28,7 @@
   - 工作区 ACL 修复：workspace-write 下沙箱与文件工具正常（此前 `SetNamedSecurityInfoW Win32 5`）。
 - 测试确认的行为特性：侧栏 webview 中**页面内导航（点击链接、表单提交）不产生历史条目**，`browser_history back` 会跳过该页、回到最近一次 `browser_navigate` 的页面（受控实验复现）。
 - 本地质量门（2026-10-23 复核）：`npm test` 18/18；`node --check` 8 个文件全部通过；`npm pack --dry-run` 通过（13 文件 / ~25 kB，中英两份 README）。
-- 仓库：`main` 分支，本地 commit（含 2026-10-22 改名、2026-10-23 发布前清理），无远程；工作树状态以 `git status` 为准。宿主侧临时诊断（`dbg(` / debug.log）已于 2026-10-23 移除，`lib/index.js` 只写标准 DSH logger。
+- 仓库：本地 `main` 是单一发布提交（2026-10-24 squash 掉全部开发历史），`dev` 保留完整开发历史（含改名与发布前清理），无远程；推送时 main 与 dev 都推，工作树状态以 `git status` 为准。宿主侧临时诊断（`dbg(` / debug.log）已于 2026-10-23 移除，`lib/index.js` 只写标准 DSH logger。
 - **2026-10-22 项目/包名重命名**：`dsh-browser-use-mcp` → `dsh-sidebar-browser-use`，2026-10-23 全部落地：package.json、cordis.patch.yml、安装/卸载脚本、README/CHANGELOG 已更新；desktop profile 的 dependency/link/bundles 均指向新名与新目录；**项目目录本身已完成改名**，旧名 `dsh-browser-use-mcp` 的悬空 junction 已删除。运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
 
 ## 架构与数据流
