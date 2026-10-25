@@ -1,0 +1,22 @@
+# dsh-sidebar-browser-use bundle patch.
+#
+# Mounts two rows:
+#   1. the host half (this package) - owns the loopback bridge, the
+#      tools/pre-execute approval gate and the renderer RPC channel;
+#   2. the stdio MCP server - spawned by the stock @deepseek-ai/dsh-mcp-client.
+#
+# The MCP row is disabled automatically when the package is not installed in
+# the desktop profile (for example under the web profile).
+- insert:
+    - id: browser-use-mcp
+      name: 'dsh-sidebar-browser-use'
+    - id: mcp-browser-use
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: browser-use
+        transport: stdio
+        command: !!js "process.execPath"
+        args:
+          - !!js "process.getBuiltinModule('path').join(process.env.DSH_HOME || (process.getBuiltinModule('os').homedir() + '/.dsh'), 'profiles', 'desktop', 'node_modules', 'dsh-sidebar-browser-use', 'mcp', 'server.js')"
+        failOnStartupError: false
+        toolCallTimeoutMs: 180000
