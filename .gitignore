@@ -26,3 +26,6 @@ desktop.ini
 # DSH pwsh sandbox artifact: Windows font cache written under a literal
 # %SystemDrive% relative path when the sandboxed shell has no SystemDrive.
 %SystemDrive%/
+
+# Local agent handoff notes: kept on disk, never published.
+/AGENTS.md

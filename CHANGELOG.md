@@ -7,7 +7,8 @@
 ### Changed
 
 - 2026-10-22：项目/包名重命名为 `dsh-sidebar-browser-use`（原 `dsh-browser-use-mcp`）；运行时插件 id `browser-use-mcp`、MCP server 名 `browser-use`、工具名（`browser_use_*`）与 bridge 数据目录 `$DSH_HOME/browser-use-mcp` 保持不变。
-- 2026-10-24：README.md / README.zh.md 精简为面向使用者的最小说明——移除 Status/Install/Approval/Security notes/Development 章节，工具章节标题改为 `Exposed Tools` / `暴露的工具`；实现与验证细节统一保留在 AGENTS.md，安装与回滚见 scripts/。
+- 2026-10-24：README.md / README.zh.md 精简为面向使用者的最小说明——移除 Status/Install/Approval/Security notes/Development 章节，工具章节标题改为 `Exposed Tools` / `暴露的工具`；实现与验证细节保留在维护者的本地交接文档中，安装与回滚见 scripts/。
+- 2026-10-25：停止在仓库中跟踪维护者的交接文档（本地保留，已加入 `.gitignore`）。
 
 ### Added
 
